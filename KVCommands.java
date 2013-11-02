@@ -1,0 +1,4 @@
+
+public enum KVCommands {
+	INSERTKV,LOOKUPKV,MODIFYKV,DELETEKV
+}

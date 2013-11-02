@@ -174,7 +174,7 @@ public class GrepServer {
 	}
 	
     /*
-     * This is a shutdown thread, this waits for interrupts to acceptor thread.
+     * This is a shutdown thread, this waits for interrupts to kvcRx thread.
      * The accpetor does not attmept to close any channels or sockets, it just 
      * updates the config file to delete the entry of this server from the 
      * config.properties file

@@ -1,5 +1,8 @@
 
 import java.net.*;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.io.*;
 
@@ -7,15 +10,16 @@ import java.io.*;
 public class GossipUdpServer {
     DatagramSocket socket = null;
 	InetSocketAddress selfInetSock = null;
-	ServerSocket KVClientReqSock = null;
     GossipTransmitter txObj = null;
     GossipReceiver rxObj = null;
     GossipTimeOutManager toObj = null;
     ConcurrentHashMap<String, TableEntry> membTable = null;
 	TableEntry selfEntry = null;
 	BufferedWriter bw = null;
-	KVClientRequestServer acceptor = null;
-
+	KVClientRequestServer kvcRx = null;
+	KVStore kvStore = null;
+	List<ICommand> redirectCommands = null;
+	
     public GossipUdpServer(String[] args, String localPort) {
     	long currentTime = System.currentTimeMillis();
     	InetAddress localInet = null;
@@ -36,25 +40,6 @@ public class GossipUdpServer {
 		    break;
     	}
 
-    	for (int i = 1124; i < 1500; i ++) {
-			try {
-			    KVClientReqSock = new ServerSocket(i);
-			} 
-			catch (IOException e) {
-			    System.err.printf("Could not listen on port: %d, Trying %d\n", i, i+1);
-			    continue;
-			}
-			break;
-		}
-
-    	try {
-			String hostname = InetAddress.getLocalHost().getHostName();
-			String localKVPort = Integer.toString(KVClientReqSock.getLocalPort());
-			System.out.println("KVServer running on host: "+ hostname + " port: " + localKVPort);
-		} catch (UnknownHostException e) {
-			e.printStackTrace();
-			System.exit(-1);
-		}
 
 
     	selfInetSock = new InetSocketAddress(socket.getLocalAddress(), socket.getLocalPort());
@@ -77,26 +62,18 @@ public class GossipUdpServer {
 			System.exit(1);
 		}
     	
+    	
+    	kvStore = new KVStore();
+    	redirectCommands = Collections.synchronizedList(new LinkedList<ICommand>());
     	txObj = new GossipTransmitter(membTable, selfEntry, socket);
     	txObj.start();
-    	rxObj = new GossipReceiver(membTable, bw, selfEntry, socket, txObj);
+    	rxObj = new GossipReceiver(membTable, bw, selfEntry, socket, txObj, kvStore, redirectCommands);
     	rxObj.start();
     	toObj = new GossipTimeOutManager(membTable, bw, selfEntry);
     	toObj.start();
-    	
+		kvcRx = new KVClientRequestServer(membTable, bw, selfEntry, txObj, kvStore, redirectCommands);
+		kvcRx.start();
 	}
-
-
-    /*
-     * KvAcceptor thread listens for connections. On arrival of a connection, a worker is spawned,
-     * and the socket is given to the connection.
-     */
-
-	public void startrun() {
-		acceptor = new KVClientRequestServer(KVClientReqSock);
-		acceptor.start();
-	}
-
 
 
 	public void shutdown() {

@@ -1,57 +1,132 @@
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.lang.reflect.Type;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.apache.commons.codec.binary.Hex;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 public class KVClientRequestServer extends Thread {
 	Socket clientSocket = null; 
 	ServerSocket serverSocket = null;
 	List<Worker> workers = new ArrayList<Worker>();
-    
-	KVClientRequestServer(ServerSocket KVClientSock) {
-		this.serverSocket = KVClientSock;
+	ConcurrentHashMap<String, TableEntry> membTable;
+	BufferedWriter bw;
+	TableEntry selfEntry;
+	GossipTransmitter txObj = null;
+	KVStore kvStore = null;
+	List<ICommand> redirectCommands = null;
+	
+	KVClientRequestServer(ConcurrentHashMap<String, TableEntry> membTable, BufferedWriter bw, TableEntry selfEntry,
+			GossipTransmitter txObj, KVStore kvStore, List<ICommand> redirectCommands) {
+    	for (int i = 1124; i < 1500; i ++) {
+			try {
+				serverSocket = new ServerSocket(i);
+			} 
+			catch (IOException e) {
+			    System.err.printf("Could not listen on port: %d, Trying %d\n", i, i+1);
+			    continue;
+			}
+			break;
+		}
+
+    	try {
+			String hostname = InetAddress.getLocalHost().getHostName();
+			String localKVPort = Integer.toString(serverSocket.getLocalPort());
+			System.out.println("KVServer running on host: "+ hostname + " port: " + localKVPort);
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+			System.exit(-1);
+		}
+    	this.bw = bw;
+    	this.selfEntry = selfEntry;
+    	this.membTable = membTable;
+    	this.kvStore = kvStore;
 	}
 
 	public class Worker extends Thread {
 		
 		Socket clientSocket;
+		PrintWriter out = null;
+		BufferedReader in = null;
+		ICommand clientCommand = null;
 		
 		public Worker(Socket clientSocket) {
 		    this.clientSocket = clientSocket;
-		}
-		
-		public void run() {
-			PrintWriter out = null;
-			BufferedReader in = null;
 			try {
-				String inputLine;
 				out = new PrintWriter(clientSocket.getOutputStream(), true);
 				in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-				if ((inputLine = in.readLine()) != null) {
-					//System.out.printf("KVWorker: Received %s\n", inputLine);
-					if (inputLine.startsWith("grep ")) {
-						
-					}
-				}
 			} catch (IOException e) {
 				e.printStackTrace();
 				// Going to return anyway
-			} finally {
-				if (out != null)
-					out.close();
-				try {
-					if (in != null) 
-						in.close();
-					if (clientSocket != null)
-						clientSocket.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-					//Going to return anyway
+			}		
+		}
+		
+		public synchronized void send(String json) {
+			if (out != null) {
+				out.println(json);
+			}
+		}
+		
+		public synchronized void closeClient() {
+			if (out != null)
+				out.close();
+				out = null;
+			try {
+				if (in != null) 
+					in.close();
+					in = null;
+				if (clientSocket != null)
+					clientSocket.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+				//Going to return anyway
+			}
+		}
+
+		public void run() {
+			String inputLine;
+			try {
+				if ((inputLine = in.readLine()) != null) {
+					//System.out.printf("KVWorker: Received %s\n", inputLine);
+					Gson gson = new Gson();
+					Type dataType = new TypeToken<KVData>(){}.getType();
+					KVData data = gson.fromJson(inputLine,dataType);
+
+					MessageDigest md = MessageDigest.getInstance("SHA-256");
+				    String hashString = Hex.encodeHexString(md.digest((data.key + "").getBytes()));
+					List<TableEntry> machines = new LinkedList<TableEntry>(membTable.values());
+					TableEntry destHostEntry = 	HashUtility.findMachineForKey(machines,hashString);
+					if (destHostEntry == selfEntry) {
+						clientCommand = new DirectLocalCommand(this, data, kvStore);
+						clientCommand.execute();
+					} else {
+						clientCommand = new RemoteCommand(this, destHostEntry, txObj, selfEntry, data);
+						clientCommand.execute();
+						synchronized(redirectCommands) {
+							redirectCommands.add(clientCommand);
+						}
+					}					    
 				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (NoSuchAlgorithmException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
 	}
@@ -73,4 +148,3 @@ public class KVClientRequestServer extends Thread {
 	}
 
 }
-

@@ -5,7 +5,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.UnknownHostException;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.gson.Gson;
@@ -19,28 +19,60 @@ public class GossipReceiver extends Thread {
 	TableEntry selfEntry = null;
     DatagramSocket socket = null;
     GossipTransmitter txObj = null;
+    KVStore kvStore = null;
+	List<ICommand> redirectCommands = null;
 
 	public GossipReceiver(ConcurrentHashMap<String, TableEntry> membTable, BufferedWriter bw, TableEntry selfEntry, 
-			DatagramSocket socket, GossipTransmitter txObj) {
+			DatagramSocket socket, GossipTransmitter txObj, KVStore kvStore, List<ICommand> redirectCommands) {
 		this.membTable = membTable;
 		this.bw = bw;
 		this.selfEntry = selfEntry;
 		this.socket = socket;
 		this.txObj = txObj;
+		this.kvStore = kvStore;
+		this.redirectCommands = redirectCommands;
 	}
 
 	private boolean processPacket(DatagramPacket packet) {
 		String rx = new String(packet.getData(), 0, packet.getLength());
 		//System.out.println("Recieve: Got " + rx);
 		Gson gson = new Gson();
-		Type collectionType = new TypeToken<HashMap<String,TableEntry>>(){}.getType();
-		HashMap<String, TableEntry> temp = gson.fromJson(rx,collectionType);
-        mergeMembTable(temp);
+		Type collectionType = new TypeToken<MarshalledServerData>(){}.getType();
+		MarshalledServerData mR = gson.fromJson(rx,collectionType);
+		if (mR.membTable != null) {
+			ConcurrentHashMap<String, TableEntry> mT = mR.membTable; 
+	        mergeMembTable(mT);
+		} else if (mR.query != null) {
+			IndirectLocalCommand inDir = new IndirectLocalCommand(mR.query, kvStore, txObj);
+			inDir.execute();
+		} else {
+			synchronized(redirectCommands) {
+				ICommand toRemove = null;
+				for (ICommand comm: redirectCommands) {
+					if (mR.reply.id == comm.getId()) {
+						comm.callback(mR.reply);
+						toRemove = comm;
+					}
+				}
+				if (toRemove != null) {
+					redirectCommands.remove(toRemove);
+				} else {
+					try {
+						bw.write("Wrong answer to us for" + mR.reply.key);
+						bw.newLine();
+						bw.flush();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+		}
 		return false;
 	}
 
 
-	public void mergeMembTable(HashMap<String, TableEntry> temp) {
+	public void mergeMembTable(ConcurrentHashMap<String, TableEntry> temp) {
 		long currentTime = System.currentTimeMillis();
 		for (TableEntry entry: temp.values()) {
 			if (entry.hasFailed) {

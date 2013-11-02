@@ -66,7 +66,7 @@ public class GrepProtocol {
                 return null;
             }
 
-			//System.out.println("GrepCore: Command " + command);
+			//System.out.println("GrepCore: RemoteCommand " + command);
 			pin = new BufferedReader(new InputStreamReader(p.getInputStream()));
 			String cmdOut = null;
 			try {

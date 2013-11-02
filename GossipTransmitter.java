@@ -64,7 +64,7 @@ public class GossipTransmitter extends TimerTask {
 	}
 
 	private ArrayList<TableEntry> getReservoir() {
-    	// Lock already taken, safe to change membTable.
+    	// Lock already taken, safe to change memTable.
     	ArrayList<TableEntry> tE = null;
     	int k = 0, size = 0;
 
@@ -121,14 +121,15 @@ public class GossipTransmitter extends TimerTask {
 		address = InetAddress.getByName(dataItems[0]);
 		int port = Integer.parseInt(dataItems[1]);
         Gson gson = new Gson();
-		String tx = gson.toJson(membTable);
+        MarshalledServerData mR = new MarshalledServerData(membTable);
+		String tx = gson.toJson(mR);
         byte[] outbuf = tx.getBytes();
 		DatagramPacket sendpacket = new DatagramPacket(outbuf, outbuf.length, address, port);
 		send(sendpacket);
 
     }
 
-	private void send(DatagramPacket packet) {
+	public synchronized void send(DatagramPacket packet) {
 		try {
 			socket.send(packet);
 		} catch (IOException e) {

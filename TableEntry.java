@@ -1,5 +1,11 @@
-public class TableEntry {
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+import org.apache.commons.codec.binary.Hex;
+
+public class TableEntry implements Comparable<TableEntry> {
 	String id = null;
+	String hashString = null;
 	long hrtBeat, jiffies;
 	boolean hasFailed;
 	long deadCount = Constants.DEADCOUNT;
@@ -9,6 +15,14 @@ public class TableEntry {
 		this.hrtBeat = hrtBeat;
 		jiffies = System.currentTimeMillis();
 		hasFailed = false;
+		MessageDigest md;
+		try {
+			md = MessageDigest.getInstance("SHA-256");
+			hashString = Hex.encodeHexString(md.digest(id.getBytes()));
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
+
 	}
 	
 	public synchronized void updateTime(){
@@ -50,5 +64,10 @@ public class TableEntry {
 			}
 		}
 		return -1;
+	}
+
+	@Override
+	public int compareTo(TableEntry o) {
+		return this.hashString.compareTo(o.hashString);
 	}
 }
