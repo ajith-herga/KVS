@@ -23,8 +23,19 @@ public abstract class LocalCommand implements ICommand {
 			data.value = kvStore.updateKeyValue(data.key, data.value);
 			break;
 		default:
-			data.code = StatusCode.FAILURE;
+			data.code = StatusCode.INVALID_COMMAND;
 		}
+		
+		if (data.value == null && (data.code != StatusCode.INVALID_COMMAND) 
+				&& data.command != KVCommands.INSERTKV) {
+			data.code = StatusCode.FAILURE;
+		}			
 		callback(data);
 	}
+	
+	public long getId() {
+		// TODO Auto-generated method stub
+		return data.id;
+	}
+
 }

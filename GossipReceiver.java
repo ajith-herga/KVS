@@ -45,7 +45,7 @@ public class GossipReceiver extends Thread {
 		} else if (mR.query != null) {
 			IndirectLocalCommand inDir = new IndirectLocalCommand(mR.query, kvStore, txObj);
 			inDir.execute();
-		} else {
+		} else if (mR.reply != null) {
 			synchronized(redirectCommands) {
 				ICommand toRemove = null;
 				for (ICommand comm: redirectCommands) {
@@ -62,10 +62,14 @@ public class GossipReceiver extends Thread {
 						bw.newLine();
 						bw.flush();
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
+			} 
+		} else if (mR.bulkQuery != null) {
+			for (KVData data: mR.bulkQuery) {
+				IndirectLocalCommandNoCallback inDir = new IndirectLocalCommandNoCallback(data, kvStore);
+				inDir.execute();
 			}
 		}
 		return false;
@@ -98,6 +102,7 @@ public class GossipReceiver extends Thread {
 					if (entry.hrtBeat < 5) {
 						try {
 							System.out.println("Joined: " + entry.id);
+							checkAndSendKeystoTableEntry(entry);
 							bw.write(entry.id + ": Joined at " + new Date(currentTime));
 							bw.newLine();
 							bw.flush();
@@ -130,6 +135,11 @@ public class GossipReceiver extends Thread {
 			}
 		}
 	}
+	private void checkAndSendKeystoTableEntry(TableEntry entry) {
+		RemoteMoveBulkCommand rem = new RemoteMoveBulkCommand(entry, txObj, kvStore, false);
+		rem.execute();
+	}
+
 	@Override
 	public void run() {
 		//System.out.println("Recieve: Running");

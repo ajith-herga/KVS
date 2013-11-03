@@ -1,4 +1,4 @@
 
 public enum StatusCode {
-   SUCCESS, FAILURE
+   SUCCESS, FAILURE, INVALID_COMMAND
 }

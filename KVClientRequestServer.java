@@ -8,14 +8,9 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-
-import org.apache.commons.codec.binary.Hex;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -107,25 +102,19 @@ public class KVClientRequestServer extends Thread {
 					Type dataType = new TypeToken<KVData>(){}.getType();
 					KVData data = gson.fromJson(inputLine,dataType);
 
-					MessageDigest md = MessageDigest.getInstance("SHA-256");
-				    String hashString = Hex.encodeHexString(md.digest((data.key + "").getBytes()));
-					List<TableEntry> machines = new LinkedList<TableEntry>(membTable.values());
-					TableEntry destHostEntry = 	HashUtility.findMachineForKey(machines,hashString);
+					TableEntry destHostEntry = 	HashUtility.findMachineForKey(membTable,data.key.keyHash);
 					if (destHostEntry == selfEntry) {
 						clientCommand = new DirectLocalCommand(this, data, kvStore);
 						clientCommand.execute();
 					} else {
 						clientCommand = new RemoteCommand(this, destHostEntry, txObj, selfEntry, data);
-						clientCommand.execute();
 						synchronized(redirectCommands) {
 							redirectCommands.add(clientCommand);
 						}
+						clientCommand.execute();
 					}					    
 				}
 			} catch (IOException e) {
-				e.printStackTrace();
-			} catch (NoSuchAlgorithmException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}

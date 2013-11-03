@@ -12,6 +12,7 @@ public class DirectLocalCommand extends LocalCommand {
 		Gson gson = new Gson();
 		String tx = gson.toJson(cR);
 		sourceWorker.send(tx);
+		sourceWorker.closeClient();
 	}
 
 	@Override

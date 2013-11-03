@@ -4,21 +4,20 @@ import java.net.UnknownHostException;
 
 import com.google.gson.Gson;
 
-public class RemoteCommand implements ICommand {
 
-	KVClientRequestServer.Worker sourceWorker;
+public class RemoteMoveBulkCommand implements ICommand{
+
+	KVData[] data = null;
 	TableEntry destHostEntry;
 	GossipTransmitter txObj = null;
-	TableEntry selfEntry = null;
-	KVDataWithSrcHost essentials = null;
-	
-	RemoteCommand(KVClientRequestServer.Worker sW, TableEntry destHostEntry, GossipTransmitter txObj,
-			      TableEntry selfEntry, KVData data) {
-		this.sourceWorker = sW;
+	KVStore kvStore = null;
+	boolean leave = false;
+
+	public RemoteMoveBulkCommand (TableEntry destHostEntry, GossipTransmitter txObj, KVStore kvStore, boolean leave) {
 		this.destHostEntry = destHostEntry;
 		this.txObj = txObj;
-		this.selfEntry = selfEntry;
-        this.essentials = new KVDataWithSrcHost(data, selfEntry);
+		this.kvStore = kvStore;
+		this.leave = leave;
 	}
 
 	public void execute() {
@@ -32,25 +31,37 @@ public class RemoteCommand implements ICommand {
 			return;
 		}
 		int port = Integer.parseInt(dataItems[1]);
+		
+		//To send my keys if necessary to the new guy
+		if (leave) {
+			data = kvStore.getAllKVData();
+		} else {
+			data = kvStore.getKVDataForMachine(destHostEntry);
+		}
+		if (data == null) {
+			return;
+		}
+		
 		Gson gson = new Gson();
-		MarshalledServerData mR = new MarshalledServerData(essentials);
+		MarshalledServerData mR = new MarshalledServerData(data);
 		String tx = gson.toJson(mR);
         byte[] outbuf = tx.getBytes();
 		DatagramPacket sendpacket = new DatagramPacket(outbuf, outbuf.length, address, port);
 		txObj.send(sendpacket);
+		// Remove Keys from me I have sent these to new guy
+		for (KVData each: data) {
+			kvStore.removeKey(each.key);
+		}
 	}
 
 	public void callback(KVData cR) {
-		Gson gson = new Gson();
-		String tx = gson.toJson(cR);
-		sourceWorker.send(tx);
-		//This is to say that we are done with the connection.
-		sourceWorker.closeClient();
+		//do nothing
 	}
 
 	@Override
 	public long getId() {
 		// TODO Auto-generated method stub
-		return essentials.data.id;
+		return 0;
 	}
+
 }

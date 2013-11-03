@@ -36,10 +36,4 @@ public class IndirectLocalCommand extends LocalCommand {
 		txObj.send(sendpacket);
 	}
 
-	@Override
-	public long getId() {
-		// TODO Auto-generated method stub
-		return data.id;
-	}
-
 }
