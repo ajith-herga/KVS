@@ -36,20 +36,22 @@ public class KVStore {
 	}
 	
 	public KVData[] getAllKVData() {
-		ArrayList<KVData> kvdata = new ArrayList<KVData>(store.size()); 
+		KVData[] kvdata = new KVData[store.size()];
+		int i = 0;
 		for (Key key: store.keySet()) {
 				Object value = store.get(key);
 				KVData temp = new KVData(KVCommands.INSERTKV, key, value, -1, StatusCode.SUCCESS);
-				kvdata.add(temp);
+				kvdata[i++] = temp;
 		}
-		if (kvdata.isEmpty()) {
+
+		if (i == 0) {
 			return null;
 		}
-		return (KVData[])kvdata.toArray();
+		return kvdata;
 	}
 
 	public KVData[] getKVDataForMachine(TableEntry destHostEntry) {
-		ArrayList<KVData> kvdata = new ArrayList<KVData>(store.size()); 
+		ArrayList<KVData> kvdata = new ArrayList<KVData>(store.size());
 		for (Key key: store.keySet()) {
 			if (key.keyHash.compareTo(destHostEntry.hashString) <= 0) {
 				Object value = store.get(key);
@@ -60,6 +62,11 @@ public class KVStore {
 		if (kvdata.isEmpty()) {
 			return null;
 		}
-		return (KVData[])kvdata.toArray();
+		int i = 0;
+		KVData[] retKv = new KVData[kvdata.size()];
+		for (KVData data : kvdata) {
+			retKv[i++] = data;
+		}
+		return retKv;
 	}
 }

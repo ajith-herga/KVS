@@ -9,7 +9,7 @@ public class HashUtility {
 		List<TableEntry> machines = new LinkedList<TableEntry>(membTable.values());
 		Collections.sort(machines);
 		for (TableEntry tE: machines) {
-			if (tE.hashString.compareTo(keyHash) >= 0) {
+			if (tE.hashString.compareTo(keyHash) > 0) {
 				return tE;
 			}
 		}
