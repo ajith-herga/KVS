@@ -10,7 +10,8 @@ public class DirectLocalCommand extends LocalCommand {
 
 	public void callback(KVData cR) {
 		Gson gson = new Gson();
-		String tx = gson.toJson(cR);
+		MarshalledClientData mcD = new MarshalledClientData(cR); 
+		String tx = gson.toJson(mcD);
 		sourceWorker.send(tx);
 		sourceWorker.closeClient();
 	}

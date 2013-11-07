@@ -12,7 +12,7 @@ public class RemoteCommand implements ICommand {
 	TableEntry selfEntry = null;
 	KVDataWithSrcHost essentials = null;
 	
-	RemoteCommand(KVClientRequestServer.Worker sW, TableEntry destHostEntry, GossipTransmitter txObj,
+	public RemoteCommand(KVClientRequestServer.Worker sW, TableEntry destHostEntry, GossipTransmitter txObj,
 			      TableEntry selfEntry, KVData data) {
 		this.sourceWorker = sW;
 		this.destHostEntry = destHostEntry;
@@ -42,9 +42,10 @@ public class RemoteCommand implements ICommand {
 
 	public void callback(KVData cR) {
 		Gson gson = new Gson();
-		String tx = gson.toJson(cR);
-		sourceWorker.send(tx);
+		MarshalledClientData mcD = new MarshalledClientData(cR); 
+		String tx = gson.toJson(mcD);
 		//This is to say that we are done with the connection.
+		sourceWorker.send(tx);
 		sourceWorker.closeClient();
 	}
 

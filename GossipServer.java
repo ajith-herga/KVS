@@ -92,6 +92,7 @@ public class GossipServer {
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		}
+		membTable.remove(selfEntry.id);
 		TableEntry dumpDest = HashUtility.findMachineForKey(membTable, selfEntry.hashString);
 		RemoteMoveBulkCommand rem = new RemoteMoveBulkCommand(dumpDest, txObj, kvStore, true);
 		rem.execute();

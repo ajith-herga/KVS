@@ -9,6 +9,7 @@ public class Key implements Comparable<Key> {
 	String keyHash = null;
 	public Key(long key) {
 		MessageDigest md;
+		this.key = key;
 		try {
 			md = MessageDigest.getInstance("SHA-256");
 		    keyHash = Hex.encodeHexString(md.digest((key + "").getBytes()));
@@ -16,9 +17,20 @@ public class Key implements Comparable<Key> {
 			e.printStackTrace();
 		}
 	}
+
 	@Override
 	public int compareTo(Key o) {
 		return keyHash.compareTo(o.keyHash);
 	}
 	
+	@Override
+	public int hashCode(){
+		return keyHash.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object other){
+		return ((other instanceof Key) && this.key==((Key)other).key); 
+	}
+
 }
