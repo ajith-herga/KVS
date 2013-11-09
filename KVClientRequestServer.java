@@ -76,6 +76,7 @@ public class KVClientRequestServer extends Thread {
 		
 		public synchronized void send(String json) {
 			if (out != null) {
+				//System.out.printf("KVWorker: Sending %s\n", json);
 				out.println(json);
 			}
 		}
