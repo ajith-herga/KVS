@@ -34,6 +34,12 @@ public class TableEntry implements Comparable<TableEntry> {
 		updateTime();
   	}
 	
+	public synchronized boolean checkLeave() {
+		if (hrtBeat == 0) {
+            return true;
+		} else return false;
+	}
+	
 	public synchronized boolean cmpAndUpdateHrtBeat(long hrtBeat, long currentTime) {
 		if (hrtBeat == 0) {
 			hasFailed = true;

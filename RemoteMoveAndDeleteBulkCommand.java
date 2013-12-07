@@ -5,19 +5,17 @@ import java.net.UnknownHostException;
 import com.google.gson.Gson;
 
 
-public class RemoteMoveBulkCommand implements ICommand{
+public class RemoteMoveAndDeleteBulkCommand implements ICommand{
 
 	KVData[] data = null;
 	TableEntry destHostEntry;
 	GossipTransmitter txObj = null;
-	KVStore kvStore = null;
-	boolean leave = false;
-
-	public RemoteMoveBulkCommand (TableEntry destHostEntry, GossipTransmitter txObj, KVStore kvStore, boolean leave) {
+    KVStore kvStore = null;
+	public RemoteMoveAndDeleteBulkCommand (TableEntry destHostEntry, KVStore kvStore, GossipTransmitter txObj, KVData[] data) {
 		this.destHostEntry = destHostEntry;
 		this.txObj = txObj;
+		this.data = data;
 		this.kvStore = kvStore;
-		this.leave = leave;
 	}
 
 	public void execute() {
@@ -33,11 +31,6 @@ public class RemoteMoveBulkCommand implements ICommand{
 		int port = Integer.parseInt(dataItems[1]);
 		
 		//To send my keys if necessary to the new guy
-		if (leave) {
-			data = kvStore.getAllKVData();
-		} else {
-			data = kvStore.getKVDataForMachine(destHostEntry);
-		}
 		if (data == null) {
 			return;
 		}

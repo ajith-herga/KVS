@@ -38,6 +38,7 @@ public class DirectLocalShowCommand extends LocalCommand {
 		Gson gson = new Gson();
 		MarshalledClientData mcD = new MarshalledClientData(cR); 
 		String tx = gson.toJson(mcD);
+		//System.out.println("DLshowcommand: " + tx);
 		sourceWorker.send(tx);
 		sourceWorker.closeClient();
 	}

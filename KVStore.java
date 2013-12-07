@@ -8,10 +8,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public class KVStore {
 	ConcurrentHashMap<Key, Object> store = null;
 	BufferedWriter bw = null;
-
-	KVStore(BufferedWriter bw) {
+	ConcurrentHashMap<String,TableEntry> membTable = null;
+	
+	KVStore(BufferedWriter bw, ConcurrentHashMap<String,TableEntry> membTable) {
 		store = new ConcurrentHashMap<Key, Object>();
 		this.bw = bw;
+		this.membTable = membTable;
 	}
 
 	public  Object addKeyValue(Key key, Object value) {
@@ -35,27 +37,14 @@ public class KVStore {
 		return store.get(key);
 	}
 	
-	public KVData[] getAllKVData() {
-		KVData[] kvdata = new KVData[store.size()];
-		int i = 0;
-		for (Key key: store.keySet()) {
-				Object value = store.get(key);
-				KVData temp = new KVData(KVCommands.INSERTKV, key, value, -1, StatusCode.SUCCESS);
-				kvdata[i++] = temp;
-		}
-
-		if (i == 0) {
-			return null;
-		}
-		return kvdata;
-	}
-
-	public KVData[] getKVDataForMachine(TableEntry destHostEntry) {
+	public KVData[] getKVDataForMachine(TableEntry destHostEntry, KVCommands command) {
 		ArrayList<KVData> kvdata = new ArrayList<KVData>(store.size());
+		TableEntry prevHost = HashUtility.findPreviousMachine(membTable, destHostEntry.hashString);
 		for (Key key: store.keySet()) {
-			if (key.keyHash.compareTo(destHostEntry.hashString) <= 0) {
+			if (key.keyHash.compareTo(prevHost.hashString) >= 0 && 
+					key.keyHash.compareTo(destHostEntry.hashString) < 0) {
 				Object value = store.get(key);
-				KVData temp = new KVData(KVCommands.INSERTKV, key, value, -1, StatusCode.SUCCESS);
+				KVData temp = new KVData(command, key, value, key.timestamp, StatusCode.SUCCESS);
 				kvdata.add(temp);
 			}
 		}

@@ -18,6 +18,7 @@ public class GossipServer {
 	KVClientRequestServer kvcRx = null;
 	KVStore kvStore = null;
 	List<ICommand> redirectCommands = null;
+	List<ICommand> replicaCommands = null;
 	
     public GossipServer(String[] args, String localPort) {
     	long currentTime = System.currentTimeMillis();
@@ -62,15 +63,16 @@ public class GossipServer {
 		}
     	
     	
-    	kvStore = new KVStore(bw);
+    	kvStore = new KVStore(bw,membTable);
     	redirectCommands = Collections.synchronizedList(new LinkedList<ICommand>());
+    	replicaCommands = Collections.synchronizedList(new LinkedList<ICommand>());
     	txObj = new GossipTransmitter(membTable, selfEntry, udpSocket);
     	txObj.start();
-    	rxObj = new GossipReceiver(membTable, bw, selfEntry, udpSocket, txObj, kvStore, redirectCommands);
+    	rxObj = new GossipReceiver(membTable, bw, selfEntry, udpSocket, txObj, kvStore, redirectCommands, replicaCommands);
     	rxObj.start();
     	toObj = new GossipTimeOutManager(membTable, bw, selfEntry);
     	toObj.start();
-		kvcRx = new KVClientRequestServer(membTable, bw, selfEntry, txObj, kvStore, redirectCommands);
+		kvcRx = new KVClientRequestServer(membTable, bw, selfEntry, txObj, kvStore, redirectCommands, replicaCommands);
 		kvcRx.start();
 	}
 
@@ -92,9 +94,12 @@ public class GossipServer {
 			e.printStackTrace();
 		}
 		//membTable.remove(selfEntry.id);
-		TableEntry dumpDest = HashUtility.findMachineForKey(membTable, selfEntry.hashString);
-		RemoteMoveBulkCommand rem = new RemoteMoveBulkCommand(dumpDest, txObj, kvStore, true);
-		rem.execute();
+		TableEntry newDest = HashUtility.findMachineForKey(membTable, selfEntry.hashString);
+		KVData[] replicaData = kvStore.getKVDataForMachine(selfEntry, KVCommands.DELETEKV);
+		KVData[] destData = kvStore.getKVDataForMachine(selfEntry, KVCommands.INSERTKV);
+		TableEntry[] sendoldReplicas = HashUtility.findReplicaforMachine(membTable, selfEntry.hashString);
+		MoveKeysToNewDest check = new MoveKeysToNewDest(sendoldReplicas,newDest, selfEntry, txObj, kvStore, replicaCommands, replicaData, destData);
+		check.execute();
 		txObj.cancel();
 		try {
 			bw.close();
