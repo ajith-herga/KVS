@@ -74,9 +74,73 @@ public class KVTest {
 		System.out.println(kvC.showAll().kV.length);
 	}
 	
+	public void Testcase3() {
+		
+		long time, diff1, key;
+		response = kvC.lookup(0, 1);
+
+		//insert 1000 keys
+		for (key = 0; key < 1000; key++) {
+			response = kvC.insert(key, key+"", 1);
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+		for (key = 0; key < 500; key++) {
+			time = System.currentTimeMillis();
+			response = kvC.lookup(key*2, 1);
+			diff1 = System.currentTimeMillis() - time;
+			latencies.add(diff1);
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+		System.out.println("************************************** || Histogram for read ||**************************************");
+		genHistogram();
+		
+		latencies = new ArrayList<Long>(1000000);
+		
+		for (key = 0; key < 500; key++) {
+			time = System.currentTimeMillis();
+			response = kvC.modify(key*2, (key+1000)+"" ,1);
+			diff1 = System.currentTimeMillis() - time;
+			latencies.add(diff1);
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+		//remove all 1000 keys
+		for (key = 0; key < 1000; key++) {
+			response = kvC.delete(key, 1);
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+		System.out.println("************************************** || Histogram for write(update) ||**************************************");
+
+		genHistogram();
+	}
+	
 	public static void main(String[] args) {
 		KVTest kvT = new KVTest("ubuntu", "1124");
-		for(;start<10;start++) {
+		kvT.Testcase3();		
+		/*for(;start<10;start++) {
 			kvT.Testcase1();
 			//kvT.Testcase2();
 			kvT.show();
@@ -86,6 +150,6 @@ public class KVTest {
 			kvT.show();
 			kvT = new KVTest("ubuntu", "1127");
 			kvT.show();
-		}
+		}*/
 	}
 }
