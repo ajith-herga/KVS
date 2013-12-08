@@ -70,7 +70,7 @@ public class GossipServer {
     	txObj.start();
     	rxObj = new GossipReceiver(membTable, bw, selfEntry, udpSocket, txObj, kvStore, redirectCommands, replicaCommands);
     	rxObj.start();
-    	toObj = new GossipTimeOutManager(membTable, bw, selfEntry);
+    	toObj = new GossipTimeOutManager(membTable, bw, selfEntry, rxObj);
     	toObj.start();
 		kvcRx = new KVClientRequestServer(membTable, bw, selfEntry, txObj, kvStore, redirectCommands, replicaCommands);
 		kvcRx.start();
@@ -80,7 +80,6 @@ public class GossipServer {
 	public void shutdown() {
 		
 		toObj.cancel();
-		rxObj.interrupt();
 		System.out.println("Shutting down Gossip");
 		selfEntry.hrtBeat = 0;
 		try {
@@ -94,12 +93,15 @@ public class GossipServer {
 			e.printStackTrace();
 		}
 		//membTable.remove(selfEntry.id);
+		/*
 		TableEntry newDest = HashUtility.findMachineForKey(membTable, selfEntry.hashString);
 		KVData[] replicaData = kvStore.getKVDataForMachine(selfEntry, KVCommands.DELETEKV);
 		KVData[] destData = kvStore.getKVDataForMachine(selfEntry, KVCommands.INSERTKV);
 		TableEntry[] sendoldReplicas = HashUtility.findReplicaforMachine(membTable, selfEntry.hashString);
 		MoveKeysToNewDest check = new MoveKeysToNewDest(sendoldReplicas,newDest, selfEntry, txObj, kvStore, replicaCommands, replicaData, destData);
 		check.execute();
+		*/
+		rxObj.interrupt();
 		txObj.cancel();
 		try {
 			bw.close();

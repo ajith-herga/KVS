@@ -21,7 +21,7 @@ public class DirectLocalShowCommand extends LocalCommand {
 		KVData[] allKVs = new KVData[store.size()];
 		int i=0;
 		for(Key key: store.keySet()){
-			KVData data = new KVData(this.data.command, key, store.get(key), 0, StatusCode.SUCCESS);
+			KVData data = new KVData(this.data.command, key, store.get(key), 0, StatusCode.SUCCESS, this.data.level);
 			allKVs[i++] = data;
 		}
 		callback(allKVs);

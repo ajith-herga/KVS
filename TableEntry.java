@@ -55,6 +55,13 @@ public class TableEntry implements Comparable<TableEntry> {
 		return false;
 	}
 	
+	public synchronized boolean timerCheckNoChange(long currentTime) {
+		if (!hasFailed && currentTime > jiffies + Constants.TIMEOUT) {
+			return true;
+		}
+		return false;
+	}
+	
 	public synchronized int timerCheck(long currentTime) {
 		if (!hasFailed && currentTime > jiffies + Constants.TIMEOUT) {
 			hasFailed = true;

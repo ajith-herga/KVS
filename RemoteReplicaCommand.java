@@ -46,10 +46,13 @@ public class RemoteReplicaCommand implements ICommand {
 		// Deleted send and close connection at local
 		// May need a periodic timer that removes the entries in this and other list:
 		// Processes may die and may not reply.. can call callback with failed error.
-	    System.out.println("RemoteReplicaCommand Callback counters" + originatorLocalCommand.expectRepliesRx + cR.id + cR.value);
-		if (originatorLocalCommand.expectRepliesRx != 0) {
-			originatorLocalCommand.expectRepliesRx--;
-			if (originatorLocalCommand.expectRepliesRx == 0) {
+		if (originatorLocalCommand == null) {
+			return;
+		}
+	    System.out.println("RemoteReplicaCommand Callback decrement " + originatorLocalCommand.expectRepliesRx + " ID:" + cR.id);
+		if (originatorLocalCommand.quorumLevel != 0) {
+			originatorLocalCommand.quorumLevel--;
+			if (originatorLocalCommand.quorumLevel == 0) {
 				originatorLocalCommand.callback(cR);
 			}
 		}

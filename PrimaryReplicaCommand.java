@@ -19,7 +19,7 @@ public abstract class PrimaryReplicaCommand extends LocalCommand{
 		this.membTable = membTable;
 		this.replicaCommands = replicaCommands;
 		expectRepliesRx = 2;
-		quorumLevel = 3;
+		quorumLevel = data.level - 1;
 	}
 
 	public void execute() {
@@ -49,7 +49,11 @@ public abstract class PrimaryReplicaCommand extends LocalCommand{
 		}
 		
 		TableEntry[] sendReplicas = HashUtility.findReplicaforMachine(membTable, selfEntry.hashString);
-		
+		if (sendReplicas != null)
+			System.out.println("Old Replicas:" + sendReplicas[0].id + "and" + sendReplicas[1].id);
+		else
+			System.out.println("!!!No new replicas!!!");
+
 		if (sendReplicas == null) {
 			//No replication
 			callback(data);
@@ -62,12 +66,12 @@ public abstract class PrimaryReplicaCommand extends LocalCommand{
 		synchronized(replicaCommands) {
 			replicaCommands.add(repl1);
 			replicaCommands.add(repl2);
+			System.out.println("Acks waiting at PrimaryReplica Initiate " + replicaCommands.size());
 		}
-		System.out.println("Size at PrimaryReplica" + replicaCommands.size());
 		repl1.execute();
 		repl2.execute();
-		if (quorumLevel == 1)
-		callback(data);
+		if (quorumLevel == 0)
+			callback(data);
 	}
 	
 	public long getId() {

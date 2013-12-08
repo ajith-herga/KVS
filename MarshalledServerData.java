@@ -10,7 +10,8 @@ public class MarshalledServerData {
     KVData[] bulkQuery = null;
     KVDataReplicaBulkReq replicaBulkReq = null;
     KVDataReplicaBulkReply replicaBulkReply = null;
-
+    KVDataReplicaBulkReqNoReply  replicaBulkNReply = null;
+    
     public MarshalledServerData(KVDataWithSrcHost essentials) {
 	    this.query = essentials;
 	}
@@ -43,4 +44,7 @@ public class MarshalledServerData {
 		this.replicaBulkReply = essentials;
 	}
 	
+	public MarshalledServerData (KVDataReplicaBulkReqNoReply essentials) {
+		this.replicaBulkNReply = essentials;
+	}
 }

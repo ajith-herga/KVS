@@ -52,23 +52,40 @@ public class HashUtility {
 			if (tE.hasFailed)
 				continue;
 			machinesAlive.add(tE);
-		}		
+		}
+		System.out.println("findReplicaforMachine Machines alive " + machinesAlive.size());
 		Collections.sort(machinesAlive);
-		boolean found = false;
+		boolean found = false, flag = false;
 		TableEntry[] returnReplicas = new TableEntry[2];
 		for (TableEntry tE: machinesAlive) {
-			if (tE.hashString.compareTo(keyHash) < 0 && found != true) {
+			if (tE.hashString.compareTo(keyHash) > 0 && found != true) {
 				returnReplicas[0] = tE;
+				System.out.println("findReplicaforMachine check 1 " + tE.id);				
 				found = true;
 				continue;
 			} else if (found == true) {
 				returnReplicas[1] = tE;
+				System.out.println("findReplicaforMachine check 2 " + tE.id);
+				flag = true;
 				break;
+			}
+		}
+		if (machinesAlive.size() > 2) {
+			if (returnReplicas[0] == null) {
+				returnReplicas[0] = machinesAlive.get(0);
+				returnReplicas[1] = machinesAlive.get(1);
+				System.out.println("findReplicaforMachine check 3 " + returnReplicas[0].id + " " + returnReplicas[1].id);
+				flag = true;
+			} else if (returnReplicas[1] == null) {
+				returnReplicas[1] = machinesAlive.get(0);
+				System.out.println("findReplicaforMachine check 4 " + returnReplicas[0].id + " " + returnReplicas[1].id);
+				flag = true;
 			}
 		}
 		//Return only if you found two replicas, else we are not ready to do replication
 		// yet.
-		if (returnReplicas.length == 2) {
+		System.out.println("findReplicaforMachine check 5 " + returnReplicas.length);
+		if (flag) {
 			return returnReplicas;
 		} else {
 			return null;

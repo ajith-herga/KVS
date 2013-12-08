@@ -80,6 +80,14 @@ public class GossipReceiver extends Thread {
 			}
 		} else if (mR.replicaBulkReq != null) {
 			ReplicaIndirectBulkCommand repl = new ReplicaIndirectBulkCommand(mR.replicaBulkReq, kvStore, txObj);
+			repl.execute();
+			//Call back is done for ack by execute.
+		} else if (mR.replicaBulkNReply != null) {
+			for (KVData data: mR.replicaBulkNReply.data) {
+				ReplicaIndirectLocalCommandNoCallback inDir = new ReplicaIndirectLocalCommandNoCallback(data, kvStore);
+				inDir.execute();
+			}
+			//Call back stub.
 		} else if (mR.replicaBulkReply != null) {
 			System.out.println("Inside" + replicaCommands.size());
 			ICommand toRemove = null;
@@ -140,14 +148,35 @@ public class GossipReceiver extends Thread {
 			}
 			if (membTable.containsKey(entry.id)) {
 				//System.out.println("Known Machine");
+				KVData[] leavekeys = null, mykeys = null;
 				TableEntry oldEntry = membTable.get(entry.id);
 				if (entry.checkLeave()) {
 					sendoldReplicas = HashUtility.findReplicaforMachine(membTable, selfEntry.hashString);
+					leavekeys = kvStore.getKVDataForMachine(entry, KVCommands.INSERTKV);
 				}
 				
 				if (oldEntry.cmpAndUpdateHrtBeat(entry.hrtBeat, currentTime)) {
 					sendnewReplicas = HashUtility.findReplicaforMachine(membTable, selfEntry.hashString);
 	    			sendKeysToNewReplica(sendnewReplicas, sendoldReplicas);
+	    			mykeys = kvStore.getKVDataForMachine(selfEntry, KVCommands.INSERTKV);
+	    			System.out.println("My keys");
+	    			if (mykeys != null) {
+		    			for (KVData temp1: mykeys) {
+		    				System.out.println(temp1);
+		    			}
+	    			}
+	    			System.out.println("Leave keys");
+	    			if (leavekeys != null) {
+		    			for (KVData temp1: leavekeys) {
+		    				System.out.println(temp1);
+		    			}
+	    			}
+	    			if (supersetKeys(mykeys,leavekeys) && sendnewReplicas != null) {
+	    				ReassertKeystoDest resert = new ReassertKeystoDest(sendnewReplicas[0], kvStore, txObj, leavekeys);
+	    				resert.execute();
+	    				resert = new ReassertKeystoDest(sendnewReplicas[1], kvStore, txObj, leavekeys);
+	    				resert.execute();
+	    			}
 					try {
 						bw.write(entry.id + ": Left   at " + new Date(currentTime));
 						bw.newLine(); 
@@ -165,6 +194,10 @@ public class GossipReceiver extends Thread {
 				if (entry.hrtBeat >= 1) {
 					if (entry.hrtBeat < 5) {
 						sendoldReplicas = HashUtility.findReplicaforMachine(membTable, selfEntry.hashString);
+						if (sendoldReplicas != null)
+							System.out.println("Old Replicas:" + sendoldReplicas[0].id + "and" + sendoldReplicas[1].id);
+						else
+							System.out.println("!!!No new replicas!!!");
 					}
 				}
 				membTable.put(entry.id, entry);
@@ -194,15 +227,22 @@ public class GossipReceiver extends Thread {
 				if (entry.hrtBeat >= 1) {
 					if (entry.hrtBeat < 5) {
 						try {
-							sendnewReplicas = HashUtility.findReplicaforMachine(membTable, selfEntry.hashString);
 							System.out.println("Joined: " + entry.id);
-							KVData[] replicaData = kvStore.getKVDataForMachine(entry, KVCommands.DELETEKV);
-							KVData[] destData = kvStore.getKVDataForMachine(entry, KVCommands.INSERTKV);
-							MoveKeysToNewDest check = new MoveKeysToNewDest(sendoldReplicas,entry, selfEntry, txObj, kvStore, replicaCommands, replicaData, destData);
-							check.execute();
-							//Callback for check called by object within check.
-							SwapKVwithinReplicas swap = new SwapKVwithinReplicas(sendoldReplicas, sendnewReplicas, txObj, kvStore, selfEntry, replicaCommands);
-							swap.execute();
+							sendnewReplicas = HashUtility.findReplicaforMachine(membTable, selfEntry.hashString);
+							if (sendnewReplicas != null)
+								System.out.println("New Replicas:" + sendnewReplicas[0].id + "and" + sendnewReplicas[1].id);
+							else
+								System.out.println("!!!No new replicas!!!");
+							if (sendnewReplicas != null && sendoldReplicas != null) {
+								KVData[] replicaData = kvStore.getKVDataForMachine(entry, KVCommands.DELETEKV);
+								KVData[] destData = kvStore.getKVDataForMachine(entry, KVCommands.INSERTKV);
+								System.out.println("Data for new joinee in my keystore " + replicaData);
+								MoveKeysToNewDest check = new MoveKeysToNewDest(sendoldReplicas,entry, selfEntry, txObj, kvStore, replicaCommands, replicaData, destData);
+								check.execute();
+								//Callback for check called by object within check.
+								SwapKVwithinReplicas swap = new SwapKVwithinReplicas(sendoldReplicas, sendnewReplicas, txObj, kvStore, selfEntry, replicaCommands);
+								swap.execute();
+							}
 							//Callback for swap called by object within check.
 							
 							bw.write(entry.id + ": Joined at " + new Date(currentTime));
@@ -218,29 +258,41 @@ public class GossipReceiver extends Thread {
 	}
 	
 
-	private void sendKeysToNewReplica(TableEntry[] newReplicas, TableEntry[] oldReplicas) {
+	public boolean supersetKeys(KVData[] mykeys, KVData[] leavekeys) {
+		if (mykeys == null || leavekeys == null) {
+			return false;
+		}
+		for (KVData check: mykeys) {
+			if (leavekeys[0].key.compareTo(check.key) == 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public void sendKeysToNewReplica(TableEntry[] newReplicas, TableEntry[] oldReplicas) {
 		
 		if (newReplicas == null || oldReplicas == null) {
 			return;
 		}
 		TableEntry[] SrcDest = new TableEntry[2];
-		if (newReplicas[0] == oldReplicas[0]) {
-			if (newReplicas[1] != oldReplicas[1]) {
+		if (newReplicas[0].compareTo(oldReplicas[0]) == 0) {
+			if (newReplicas[1].compareTo(oldReplicas[1]) != 0) {
 				SrcDest[0] = oldReplicas[1];
 				SrcDest[1] = newReplicas[1];
 			}
-		} else if (newReplicas[1] == oldReplicas[1]) {
-			if (newReplicas[0] != oldReplicas[0]) {
+		} else if (newReplicas[1].compareTo(oldReplicas[1]) == 0) {
+			if (newReplicas[0].compareTo(oldReplicas[0]) != 0) {
 				SrcDest[0] = oldReplicas[0];
 				SrcDest[1] = newReplicas[0];
 			}
-		} else if (newReplicas[1] == oldReplicas[0]) {
-			if (newReplicas[0] != oldReplicas[1]) {
+		} else if (newReplicas[1].compareTo(oldReplicas[0]) == 0) {
+			if (newReplicas[0].compareTo(oldReplicas[1]) != 0) {
 				SrcDest[0] = oldReplicas[1];
 				SrcDest[1] = newReplicas[0];
 			}
-		} else if (newReplicas[0] == oldReplicas[1]) {
-			if (newReplicas[1] != oldReplicas[0]) {
+		} else if (newReplicas[0].compareTo(oldReplicas[1]) == 0) {
+			if (newReplicas[1].compareTo(oldReplicas[0]) != 0) {
 				SrcDest[0] = oldReplicas[0];
 				SrcDest[1] = newReplicas[1];
 			}
@@ -254,6 +306,8 @@ public class GossipReceiver extends Thread {
 		    if (dataAdd == null) {
 		    	return;
 		    }
+		    System.out.println("The new replica is " + SrcDest[1].id);
+		    //Will not delete KV from local.
 		    ReplicaBulkAddOrDelRemote replicaDest = new ReplicaBulkAddOrDelRemote(SrcDest[1], selfEntry, txObj, dataAdd, null);
 		    replicaDest.execute();
 		    //No call back will be called as you are not there in the replicalist.

@@ -20,6 +20,7 @@ public class ReplicaBulkAddOrDelRemote implements ICommand {
 		this.txObj = txObj;
 		this.selfEntry = selfEntry;
 		this.data = data;
+	    this.parent = parent;
 	}
 
 	public void execute() {
@@ -38,6 +39,7 @@ public class ReplicaBulkAddOrDelRemote implements ICommand {
 		Gson gson = new Gson();
 		MarshalledServerData mR = new MarshalledServerData(dataBulk);
 		String tx = gson.toJson(mR);
+		System.out.println("ReplicaBulkAddorDel" + tx);
         byte[] outbuf = tx.getBytes();
 		DatagramPacket sendpacket = new DatagramPacket(outbuf, outbuf.length, address, port);
 		txObj.send(sendpacket);
@@ -46,8 +48,10 @@ public class ReplicaBulkAddOrDelRemote implements ICommand {
 	}
 
 	public void callback(KVData cR) {
+		System.out.println("Callback ReplicaBulk for sent " + data);
 		if (parent != null) {
-		    parent.callback(cR);
+		    System.out.println("ReplicaBulk parent callback");
+			parent.callback(cR);
 		}
 	}
 

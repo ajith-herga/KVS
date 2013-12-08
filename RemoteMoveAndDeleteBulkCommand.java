@@ -11,7 +11,8 @@ public class RemoteMoveAndDeleteBulkCommand implements ICommand{
 	TableEntry destHostEntry;
 	GossipTransmitter txObj = null;
     KVStore kvStore = null;
-	public RemoteMoveAndDeleteBulkCommand (TableEntry destHostEntry, KVStore kvStore, GossipTransmitter txObj, KVData[] data) {
+	public RemoteMoveAndDeleteBulkCommand (TableEntry destHostEntry, KVStore kvStore,
+			GossipTransmitter txObj, KVData[] data) {
 		this.destHostEntry = destHostEntry;
 		this.txObj = txObj;
 		this.data = data;

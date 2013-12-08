@@ -123,39 +123,39 @@ public class KVClientAPI {
 	}
 
 	public KVClientShowResponse showAll() {
-		KVData data = new KVData(KVCommands.SHOWALL, null, null, System.currentTimeMillis(),StatusCode.FAILURE);
+		KVData data = new KVData(KVCommands.SHOWALL, null, null, System.currentTimeMillis(),StatusCode.FAILURE, 1);
 		requester = new Requester(data);
 		requester.start();
 		joinThreads();
 		return showResult;
 	}
 
-	public KVClientResponse insert(long key, Object Value) {
-	    KVData data = new KVData(KVCommands.INSERTKV, key, Value, System.currentTimeMillis(),StatusCode.FAILURE);
+	public KVClientResponse insert(long key, Object Value, int level) {
+	    KVData data = new KVData(KVCommands.INSERTKV, key, Value, System.currentTimeMillis(),StatusCode.FAILURE, level);
 	    requester = new Requester(data);
 		requester.start();
 		joinThreads();
 		return result;
 	}
 	
-	public KVClientResponse modify(long key, Object Value) {
-	    KVData data = new KVData(KVCommands.MODIFYKV, key, Value, System.currentTimeMillis(),StatusCode.FAILURE);
+	public KVClientResponse modify(long key, Object Value, int level) {
+	    KVData data = new KVData(KVCommands.MODIFYKV, key, Value, System.currentTimeMillis(),StatusCode.FAILURE, level);
 	    requester = new Requester(data);
 		requester.start();
 		joinThreads();
 		return result;
 	}
 
-	public KVClientResponse lookup(long key) {
-	    KVData data = new KVData(KVCommands.LOOKUPKV, key, null, System.currentTimeMillis(),StatusCode.FAILURE);
+	public KVClientResponse lookup(long key, int level) {
+	    KVData data = new KVData(KVCommands.LOOKUPKV, key, null, System.currentTimeMillis(),StatusCode.FAILURE, level);
 	    requester = new Requester(data);
 		requester.start();
 		joinThreads();
 		return result;
 	}
 
-	public KVClientResponse delete(long key) {
-	    KVData data = new KVData(KVCommands.DELETEKV, key, null, System.currentTimeMillis(),StatusCode.FAILURE);
+	public KVClientResponse delete(long key, int level) {
+	    KVData data = new KVData(KVCommands.DELETEKV, key, null, System.currentTimeMillis(),StatusCode.FAILURE, level);
 	    requester = new Requester(data);
 		requester.start();
 		joinThreads();
