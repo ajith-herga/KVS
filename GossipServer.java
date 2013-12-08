@@ -34,7 +34,7 @@ public class GossipServer {
 		    try {
 				udpSocket = new DatagramSocket(i, localInet);
 			} catch (SocketException e) {
-			    System.err.printf("Could not listen on port: %d, Trying %d\n", i, i+1);
+			    //System.err.printf("Could not listen on port: %d, Trying %d\n", i, i+1);
 				continue;
 			}
 		    break;
@@ -93,14 +93,6 @@ public class GossipServer {
 			e.printStackTrace();
 		}
 		//membTable.remove(selfEntry.id);
-		/*
-		TableEntry newDest = HashUtility.findMachineForKey(membTable, selfEntry.hashString);
-		KVData[] replicaData = kvStore.getKVDataForMachine(selfEntry, KVCommands.DELETEKV);
-		KVData[] destData = kvStore.getKVDataForMachine(selfEntry, KVCommands.INSERTKV);
-		TableEntry[] sendoldReplicas = HashUtility.findReplicaforMachine(membTable, selfEntry.hashString);
-		MoveKeysToNewDest check = new MoveKeysToNewDest(sendoldReplicas,newDest, selfEntry, txObj, kvStore, replicaCommands, replicaData, destData);
-		check.execute();
-		*/
 		rxObj.interrupt();
 		txObj.cancel();
 		try {

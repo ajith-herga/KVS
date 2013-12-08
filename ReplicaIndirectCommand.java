@@ -35,7 +35,7 @@ public class ReplicaIndirectCommand extends LocalCommand {
 		Gson gson = new Gson();
 		MarshalledServerData mR = new MarshalledServerData(kvReplReply);
 		String tx = gson.toJson(mR);
-		System.out.println("ReplicaIndirect Callback: " + tx);
+		// DEBUG System.out.println("ReplicaIndirect Callback: " + tx);
         byte[] outbuf = tx.getBytes();
 		DatagramPacket sendpacket = new DatagramPacket(outbuf, outbuf.length, address, port);
 		txObj.send(sendpacket);

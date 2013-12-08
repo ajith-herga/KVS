@@ -39,7 +39,7 @@ public class ReplicaBulkAddOrDelRemote implements ICommand {
 		Gson gson = new Gson();
 		MarshalledServerData mR = new MarshalledServerData(dataBulk);
 		String tx = gson.toJson(mR);
-		System.out.println("ReplicaBulkAddorDel" + tx);
+		// DEBUG System.out.println("ReplicaBulkAddorDel" + tx);
         byte[] outbuf = tx.getBytes();
 		DatagramPacket sendpacket = new DatagramPacket(outbuf, outbuf.length, address, port);
 		txObj.send(sendpacket);

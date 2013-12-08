@@ -71,7 +71,7 @@ public class KVClientAPI {
 	        Gson gson = new Gson();
         	MarshalledClientData mcD = new MarshalledClientData(query);
     		String tx = gson.toJson(mcD);
-    		System.out.println("KVClientAPI: Run" + tx);
+    		// DEBUG System.out.println("KVClientAPI: Run" + tx);
     		out.println(tx);
 
 	        try {
