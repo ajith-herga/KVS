@@ -7,8 +7,9 @@ public class KVTest {
 	KVClientAPI kvC = null;
 	KVClientResponse response = null;
 	List<Long> latencies = null;
-	public KVTest(String[] args) {
-		kvC = new KVClientAPI(args[0], args[1]);
+	static long start=8;
+	public KVTest(String host, String port) {
+		kvC = new KVClientAPI(host, port);
 		latencies = new ArrayList<Long>(1000000);
 	}
 	
@@ -20,10 +21,34 @@ public class KVTest {
 			response = kvC.lookup(key, 1);
 			diff1 = System.currentTimeMillis() - time;
 			latencies.add(diff1);
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
-		genHistogram();
+		//genHistogram();
 	}
 	
+	public void Testcase2() {
+		long time, diff1, key;
+		//response = kvC.lookup(0);
+		for (key =0; key < 1000; key++) {
+			time = System.currentTimeMillis();
+			response = kvC.lookup((long)(Math.random()*10000.0),1);
+			diff1 = System.currentTimeMillis() - time;
+			latencies.add(diff1);
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		//genHistogram();
+	}
+
 	public void genHistogram() {
 		System.out.println("Get histogram");
 		Collections.sort(latencies);
@@ -40,13 +65,27 @@ public class KVTest {
 		}
 		
 		for (long val: bucket) {
-			System.out.println(val + "," + min + "," + (min + bucketsize));
+			System.out.println(val);
 			min += bucketsize;
 		}
 	}
+
+	public void show() {
+		System.out.println(kvC.showAll().kV.length);
+	}
 	
 	public static void main(String[] args) {
-		KVTest kvT = new KVTest(args);
-		kvT.Testcase1();
+		KVTest kvT = new KVTest("ubuntu", "1124");
+		for(;start<10;start++) {
+			kvT.Testcase1();
+			//kvT.Testcase2();
+			kvT.show();
+			kvT = new KVTest("ubuntu", "1125");
+			kvT.show();
+			kvT = new KVTest("ubuntu", "1126");
+			kvT.show();
+			kvT = new KVTest("ubuntu", "1127");
+			kvT.show();
+		}
 	}
 }
