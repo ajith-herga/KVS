@@ -1,8 +1,12 @@
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class IndirectLocalCommandNoCallback extends LocalCommand {
 
-	IndirectLocalCommandNoCallback(KVData data, KVStore kvStore) {
-		super(data, kvStore);
+public class IndirectLocalCommandNoCallback extends PrimaryReplicaCommand {
+
+	IndirectLocalCommandNoCallback(KVData data, KVStore kvStore, GossipTransmitter txObj,
+			ConcurrentHashMap<String, TableEntry> membTable, TableEntry selfEntry, List<ICommand> replicaCommands) {
+		super(data, kvStore, txObj, membTable, selfEntry, replicaCommands);
 		// TODO Auto-generated constructor stub
 	}
 

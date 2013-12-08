@@ -15,10 +15,10 @@ public class KVTest {
 	
 	public void Testcase1() {
 		long time, diff1, key;
-		//response = kvC.lookup(0);
-		for (key =start; key < 10000; key+=10) {
+		response = kvC.lookup(0, 1);
+		for (key = 0; key < 10000; key++) {
 			time = System.currentTimeMillis();
-			response = kvC.insert(key,"Test Value");
+			response = kvC.lookup(key, 1);
 			diff1 = System.currentTimeMillis() - time;
 			latencies.add(diff1);
 			try {

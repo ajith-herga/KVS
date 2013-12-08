@@ -34,6 +34,12 @@ public class TableEntry implements Comparable<TableEntry> {
 		updateTime();
   	}
 	
+	public synchronized boolean checkLeave() {
+		if (hrtBeat == 0) {
+            return true;
+		} else return false;
+	}
+	
 	public synchronized boolean cmpAndUpdateHrtBeat(long hrtBeat, long currentTime) {
 		if (hrtBeat == 0) {
 			hasFailed = true;
@@ -46,6 +52,13 @@ public class TableEntry implements Comparable<TableEntry> {
 		//System.out.println("Changing heartbeat");
 		this.hrtBeat = hrtBeat;
 		this.jiffies = currentTime;
+		return false;
+	}
+	
+	public synchronized boolean timerCheckNoChange(long currentTime) {
+		if (!hasFailed && currentTime > jiffies + Constants.TIMEOUT) {
+			return true;
+		}
 		return false;
 	}
 	

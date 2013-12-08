@@ -25,9 +25,12 @@ public class KVClientRequestServer extends Thread {
 	GossipTransmitter txObj = null;
 	KVStore kvStore = null;
 	List<ICommand> redirectCommands = null;
+	List<ICommand> replicaCommands = null;
 	
-	public KVClientRequestServer(ConcurrentHashMap<String, TableEntry> membTable, BufferedWriter bw, TableEntry selfEntry,
-			GossipTransmitter txObj, KVStore kvStore, List<ICommand> redirectCommands) {
+	public KVClientRequestServer(ConcurrentHashMap<String,
+			TableEntry> membTable, BufferedWriter bw, TableEntry selfEntry,
+			GossipTransmitter txObj, KVStore kvStore, 
+			List<ICommand> redirectCommands, List<ICommand> replicateCommands) {
 		
     	for (int i = 1124; i < 1500; i ++) {
 			try {
@@ -53,6 +56,7 @@ public class KVClientRequestServer extends Thread {
     	this.membTable = membTable;
     	this.kvStore = kvStore;
 		this.redirectCommands = redirectCommands;
+		this.replicaCommands = replicateCommands;
 		this.txObj = txObj;
 	}
 
@@ -101,7 +105,7 @@ public class KVClientRequestServer extends Thread {
 			String inputLine;
 			try {
 				if ((inputLine = in.readLine()) != null) {
-					//System.out.printf("KVWorker: Received %s\n", inputLine);
+					System.out.printf("KVWorker: Received %s\n", inputLine);
 					Gson gson = new Gson();
 					Type dataType = new TypeToken<MarshalledClientData>(){}.getType();
 					MarshalledClientData marshelledData = gson.fromJson(inputLine,dataType);
@@ -114,7 +118,7 @@ public class KVClientRequestServer extends Thread {
 					
 					TableEntry destHostEntry = 	HashUtility.findMachineForKey(membTable,data.key.keyHash);
 					if (destHostEntry == selfEntry) {
-						clientCommand = new DirectLocalCommand(this, data, kvStore);
+						clientCommand = new DirectLocalCommand(this, data, kvStore, txObj, membTable, selfEntry, replicaCommands);
 						clientCommand.execute();
 					} else {
 						clientCommand = new RemoteCommand(this, destHostEntry, txObj, selfEntry, data);

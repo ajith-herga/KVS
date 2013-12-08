@@ -21,7 +21,7 @@ public class DirectLocalShowCommand extends LocalCommand {
 		KVData[] allKVs = new KVData[store.size()];
 		int i=0;
 		for(Key key: store.keySet()){
-			KVData data = new KVData(this.data.command, key, store.get(key), 0, StatusCode.SUCCESS);
+			KVData data = new KVData(this.data.command, key, store.get(key), 0, StatusCode.SUCCESS, this.data.level);
 			allKVs[i++] = data;
 		}
 		callback(allKVs);
@@ -38,6 +38,7 @@ public class DirectLocalShowCommand extends LocalCommand {
 		Gson gson = new Gson();
 		MarshalledClientData mcD = new MarshalledClientData(cR); 
 		String tx = gson.toJson(mcD);
+		//System.out.println("DLshowcommand: " + tx);
 		sourceWorker.send(tx);
 		sourceWorker.closeClient();
 	}

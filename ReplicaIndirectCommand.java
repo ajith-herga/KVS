@@ -7,22 +7,21 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.google.gson.Gson;
 
 
-public class IndirectLocalCommand extends PrimaryReplicaCommand {
+public class ReplicaIndirectCommand extends LocalCommand {
 
 	GossipTransmitter txObj = null;
 	TableEntry destEntry = null;
+	KVDataReplicaReply kvReplReply = null;
 
-	IndirectLocalCommand(KVDataWithSrcHost kvSrc, KVStore kvStore,
-			GossipTransmitter txObj,
-			ConcurrentHashMap<String,TableEntry> membTable,
-			TableEntry selfEntry, List<ICommand> replicaCommands) {
-		super(kvSrc.data, kvStore, txObj, membTable, selfEntry, replicaCommands);
-		this.destEntry = kvSrc.srcHostEntry;
+	ReplicaIndirectCommand(KVDataReplicaReq kvReq, KVStore kvStore,
+			GossipTransmitter txObj) {
+		super(kvReq.data, kvStore);
+		this.destEntry = kvReq.srcHostEntry;
 		this.txObj = txObj;
+		kvReplReply = new KVDataReplicaReply(kvReq);
 	}
 
-	@Override
-	public void callback(KVData cR) {
+	public void callback(KVData unR) {
 		String[] dataItems = destEntry.id.split("___");
 		
 		InetAddress address = null;
@@ -34,12 +33,11 @@ public class IndirectLocalCommand extends PrimaryReplicaCommand {
 		}
 		int port = Integer.parseInt(dataItems[1]);
 		Gson gson = new Gson();
-		MarshalledServerData mR = new MarshalledServerData(cR);
+		MarshalledServerData mR = new MarshalledServerData(kvReplReply);
 		String tx = gson.toJson(mR);
-		System.out.println("IndirectLcommand: Callback" + tx);
+		System.out.println("ReplicaIndirect Callback: " + tx);
         byte[] outbuf = tx.getBytes();
 		DatagramPacket sendpacket = new DatagramPacket(outbuf, outbuf.length, address, port);
 		txObj.send(sendpacket);
 	}
-
 }

@@ -8,10 +8,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public class KVStore {
 	ConcurrentHashMap<Key, Object> store = null;
 	BufferedWriter bw = null;
-
-	KVStore(BufferedWriter bw) {
+	ConcurrentHashMap<String,TableEntry> membTable = null;
+	
+	KVStore(BufferedWriter bw, ConcurrentHashMap<String,TableEntry> membTable) {
 		store = new ConcurrentHashMap<Key, Object>();
 		this.bw = bw;
+		this.membTable = membTable;
 	}
 
 	public  Object addKeyValue(Key key, Object value) {
@@ -35,29 +37,29 @@ public class KVStore {
 		return store.get(key);
 	}
 	
-	public KVData[] getAllKVData() {
-		KVData[] kvdata = new KVData[store.size()];
-		int i = 0;
-		for (Key key: store.keySet()) {
-				Object value = store.get(key);
-				KVData temp = new KVData(KVCommands.INSERTKV, key, value, -1, StatusCode.SUCCESS);
-				kvdata[i++] = temp;
-		}
-
-		if (i == 0) {
+	public KVData[] getKVDataForMachine(TableEntry destHostEntry, KVCommands command) {
+		ArrayList<KVData> kvdata = new ArrayList<KVData>(store.size());
+		TableEntry prevHost = HashUtility.findPreviousMachine(membTable, destHostEntry.hashString);
+		System.out.println("Previous for " + destHostEntry.id + " is " + prevHost.id + " KVStore size " + store.size());
+		System.out.println("Previous Hash:" + prevHost.hashString);
+		System.out.println("Current Hash:" + destHostEntry.hashString);
+		if (prevHost.compareTo(destHostEntry) == 0) {
 			return null;
 		}
-		return kvdata;
-	}
-
-	public KVData[] getKVDataForMachine(TableEntry destHostEntry) {
-		ArrayList<KVData> kvdata = new ArrayList<KVData>(store.size());
 		for (Key key: store.keySet()) {
-			if (key.keyHash.compareTo(destHostEntry.hashString) <= 0) {
+			boolean rangeCondition1 = prevHost.compareTo(destHostEntry) < 0 &&
+					key.keyHash.compareTo(prevHost.hashString) >= 0 && 
+					key.keyHash.compareTo(destHostEntry.hashString) < 0;
+			boolean rangeCondition2 = prevHost.compareTo(destHostEntry) > 0 &&
+					(key.keyHash.compareTo(prevHost.hashString) >= 0 || 
+					key.keyHash.compareTo(destHostEntry.hashString) < 0);
+			if (rangeCondition1 || rangeCondition2) {
 				Object value = store.get(key);
-				KVData temp = new KVData(KVCommands.INSERTKV, key, value, -1, StatusCode.SUCCESS);
+				KVData temp = new KVData(command, key, value, key.timestamp, StatusCode.SUCCESS, 1);
+				System.out.println("Found KVData " + temp);
 				kvdata.add(temp);
 			}
+			System.out.println("Keyhash " + key.keyHash + " Object " + store.get(key));
 		}
 		if (kvdata.isEmpty()) {
 			return null;
