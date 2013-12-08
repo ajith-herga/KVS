@@ -36,7 +36,7 @@ public class KVTest {
 		//response = kvC.lookup(0);
 		for (key =0; key < 1000; key++) {
 			time = System.currentTimeMillis();
-			response = kvC.lookup((long)(Math.random()*10000.0));
+			response = kvC.lookup((long)(Math.random()*10000.0),1);
 			diff1 = System.currentTimeMillis() - time;
 			latencies.add(diff1);
 			try {
