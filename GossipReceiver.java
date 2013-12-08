@@ -44,7 +44,7 @@ public class GossipReceiver extends Thread {
 		Type collectionType = new TypeToken<MarshalledServerData>(){}.getType();
 		MarshalledServerData mR = gson.fromJson(rx,collectionType);
 		if (mR.membTable == null) {
-		    System.out.println("Recieve: Got " + rx);
+		    //System.out.println("Recieve: Got " + rx);
 		}
 		if (mR.membTable != null) {
 			ConcurrentHashMap<String, TableEntry> mT = mR.membTable; 
@@ -89,7 +89,6 @@ public class GossipReceiver extends Thread {
 			}
 			//Call back stub.
 		} else if (mR.replicaBulkReply != null) {
-			System.out.println("Inside" + replicaCommands.size());
 			ICommand toRemove = null;
 			for (ICommand comm: replicaCommands) {
 				if (mR.replicaBulkReply.milisPrimary == comm.getId()) {
@@ -113,7 +112,6 @@ public class GossipReceiver extends Thread {
 			ReplicaIndirectCommand replInDir = new ReplicaIndirectCommand(mR.replicaQuery, kvStore, txObj);
 			replInDir.execute();
 		} else if (mR.replicaReply != null) {
-			System.out.println("Inside" + replicaCommands.size());
 			ICommand toRemove = null;
 			for (ICommand comm: replicaCommands) {
 				if (mR.replicaReply.milisPrimary == comm.getId()) {
@@ -159,7 +157,7 @@ public class GossipReceiver extends Thread {
 					sendnewReplicas = HashUtility.findReplicaforMachine(membTable, selfEntry.hashString);
 	    			sendKeysToNewReplica(sendnewReplicas, sendoldReplicas);
 	    			mykeys = kvStore.getKVDataForMachine(selfEntry, KVCommands.INSERTKV);
-	    			System.out.println("My keys");
+	    			/* DEBUG System.out.println("My keys");
 	    			if (mykeys != null) {
 		    			for (KVData temp1: mykeys) {
 		    				System.out.println(temp1);
@@ -170,7 +168,7 @@ public class GossipReceiver extends Thread {
 		    			for (KVData temp1: leavekeys) {
 		    				System.out.println(temp1);
 		    			}
-	    			}
+	    			}*/
 	    			if (supersetKeys(mykeys,leavekeys) && sendnewReplicas != null) {
 	    				ReassertKeystoDest resert = new ReassertKeystoDest(sendnewReplicas[0], kvStore, txObj, leavekeys);
 	    				resert.execute();
@@ -190,14 +188,15 @@ public class GossipReceiver extends Thread {
 				// 1. find the keys my replicas are not supposed to have.
 				// 2. These are also my old replicas in case this guy becomes my new designated replica.
 				
-				//System.out.println("New Entry: " + entry.id);
+				//DEBUG System.out.println("New Entry: " + entry.id);
 				if (entry.hrtBeat >= 1) {
 					if (entry.hrtBeat < 5) {
 						sendoldReplicas = HashUtility.findReplicaforMachine(membTable, selfEntry.hashString);
-						if (sendoldReplicas != null)
+						/* DEBUG if (sendoldReplicas != null)
 							System.out.println("Old Replicas:" + sendoldReplicas[0].id + "and" + sendoldReplicas[1].id);
 						else
 							System.out.println("!!!No new replicas!!!");
+						*/
 					}
 				}
 				membTable.put(entry.id, entry);
@@ -230,13 +229,13 @@ public class GossipReceiver extends Thread {
 							System.out.println("Joined: " + entry.id);
 							sendnewReplicas = HashUtility.findReplicaforMachine(membTable, selfEntry.hashString);
 							if (sendnewReplicas != null)
-								System.out.println("New Replicas:" + sendnewReplicas[0].id + "and" + sendnewReplicas[1].id);
+								System.out.println("Replicas are" + sendnewReplicas[0].id + "and" + sendnewReplicas[1].id);
 							else
 								System.out.println("!!!No new replicas!!!");
 							if (sendnewReplicas != null && sendoldReplicas != null) {
 								KVData[] replicaData = kvStore.getKVDataForMachine(entry, KVCommands.DELETEKV);
 								KVData[] destData = kvStore.getKVDataForMachine(entry, KVCommands.INSERTKV);
-								System.out.println("Data for new joinee in my keystore " + replicaData);
+								//DEBUG System.out.println("Data for new joinee in my keystore " + replicaData);
 								MoveKeysToNewDest check = new MoveKeysToNewDest(sendoldReplicas,entry, selfEntry, txObj, kvStore, replicaCommands, replicaData, destData);
 								check.execute();
 								//Callback for check called by object within check.
@@ -299,7 +298,7 @@ public class GossipReceiver extends Thread {
 		}
 		
 		if (SrcDest[0] == null) {
-			System.out.println("No difference in locality");
+			System.out.println("No difference in Replicas after Topology Change");
 			return;
 		} else {
 		    KVData[] dataAdd = kvStore.getKVDataForMachine(selfEntry, KVCommands.INSERTKV);

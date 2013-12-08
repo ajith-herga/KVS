@@ -18,7 +18,7 @@ public class DirectLocalCommand extends PrimaryReplicaCommand {
 		Gson gson = new Gson();
 		MarshalledClientData mcD = new MarshalledClientData(cR); 
 		String tx = gson.toJson(mcD);
-		System.out.println("DLcommand Callback: " + tx);
+		//System.out.println("DLcommand Callback: " + tx);
 		sourceWorker.send(tx);
 		sourceWorker.closeClient();
 	}

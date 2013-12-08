@@ -36,7 +36,7 @@ public class RemoteReplicaCommand implements ICommand {
 		Gson gson = new Gson();
 		MarshalledServerData mR = new MarshalledServerData(essentials);
 		String tx = gson.toJson(mR);
-		System.out.println("ReplicaCommandExecute: " + tx);
+		//System.out.println("ReplicaCommandExecute: " + tx);
         byte[] outbuf = tx.getBytes();
 		DatagramPacket sendpacket = new DatagramPacket(outbuf, outbuf.length, address, port);
 		txObj.send(sendpacket);
@@ -49,7 +49,7 @@ public class RemoteReplicaCommand implements ICommand {
 		if (originatorLocalCommand == null) {
 			return;
 		}
-	    System.out.println("RemoteReplicaCommand Callback decrement " + originatorLocalCommand.expectRepliesRx + " ID:" + cR.id);
+	    //System.out.println("RemoteReplicaCommand Callback decrement " + originatorLocalCommand.expectRepliesRx + " ID:" + cR.id);
 		if (originatorLocalCommand.quorumLevel != 0) {
 			originatorLocalCommand.quorumLevel--;
 			if (originatorLocalCommand.quorumLevel == 0) {
@@ -61,7 +61,7 @@ public class RemoteReplicaCommand implements ICommand {
 	@Override
 	public long getId() {
 		// TODO Auto-generated method stub
-		System.out.println("Replica Command id return" + essentials.milisPrimary);
+		//System.out.println("Replica Command id return" + essentials.milisPrimary);
 		return essentials.milisPrimary;
 	}
 

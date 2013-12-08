@@ -40,9 +40,9 @@ public class KVStore {
 	public KVData[] getKVDataForMachine(TableEntry destHostEntry, KVCommands command) {
 		ArrayList<KVData> kvdata = new ArrayList<KVData>(store.size());
 		TableEntry prevHost = HashUtility.findPreviousMachine(membTable, destHostEntry.hashString);
-		System.out.println("Previous for " + destHostEntry.id + " is " + prevHost.id + " KVStore size " + store.size());
-		System.out.println("Previous Hash:" + prevHost.hashString);
-		System.out.println("Current Hash:" + destHostEntry.hashString);
+		// DEBUG System.out.println("Previous for " + destHostEntry.id + " is " + prevHost.id);
+		//System.out.println("Previous Hash:" + prevHost.hashString);
+		//System.out.println("Current Hash:" + destHostEntry.hashString);
 		if (prevHost.compareTo(destHostEntry) == 0) {
 			return null;
 		}
@@ -56,10 +56,10 @@ public class KVStore {
 			if (rangeCondition1 || rangeCondition2) {
 				Object value = store.get(key);
 				KVData temp = new KVData(command, key, value, key.timestamp, StatusCode.SUCCESS, 1);
-				System.out.println("Found KVData " + temp);
+				//System.out.println("Found KVData " + temp);
 				kvdata.add(temp);
 			}
-			System.out.println("Keyhash " + key.keyHash + " Object " + store.get(key));
+			//System.out.println("Keyhash " + key.keyHash + " Object " + store.get(key));
 		}
 		if (kvdata.isEmpty()) {
 			return null;

@@ -35,7 +35,7 @@ public class RemoteCommand implements ICommand {
 		Gson gson = new Gson();
 		MarshalledServerData mR = new MarshalledServerData(essentials);
 		String tx = gson.toJson(mR);
-		System.out.println("RemoteCommand Exec: " + tx);
+		// DEBUG System.out.println("RemoteCommand Exec: " + tx);
         byte[] outbuf = tx.getBytes();
 		DatagramPacket sendpacket = new DatagramPacket(outbuf, outbuf.length, address, port);
 		txObj.send(sendpacket);
@@ -46,7 +46,7 @@ public class RemoteCommand implements ICommand {
 		MarshalledClientData mcD = new MarshalledClientData(cR); 
 		String tx = gson.toJson(mcD);
 		//This is to say that we are done with the connection.
-		System.out.println("RemoteCommand: Callback " + tx);
+		// DEBUG System.out.println("RemoteCommand: Callback " + tx);
 		sourceWorker.send(tx);
 		sourceWorker.closeClient();
 	}

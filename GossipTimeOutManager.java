@@ -59,7 +59,7 @@ public class GossipTimeOutManager extends TimerTask{
 				sendnewReplicas = HashUtility.findReplicaforMachine(membTable, selfEntry.hashString);
     			rxObj.sendKeysToNewReplica(sendnewReplicas, sendoldReplicas);
     			mykeys = rxObj.kvStore.getKVDataForMachine(selfEntry, KVCommands.INSERTKV);
-    			System.out.println("My keys");
+    			/* DEBUG System.out.println("My keys");
     			if (mykeys != null) {
 	    			for (KVData temp1: mykeys) {
 	    				System.out.println(temp1);
@@ -70,7 +70,7 @@ public class GossipTimeOutManager extends TimerTask{
 	    			for (KVData temp1: leavekeys) {
 	    				System.out.println(temp1);
 	    			}
-    			}
+    			} */
     			if (rxObj.supersetKeys(mykeys,leavekeys) && sendnewReplicas != null) {
     				ReassertKeystoDest resert = new ReassertKeystoDest(sendnewReplicas[0], rxObj.kvStore, rxObj.txObj, leavekeys);
     				resert.execute();

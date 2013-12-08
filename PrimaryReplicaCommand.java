@@ -23,7 +23,7 @@ public abstract class PrimaryReplicaCommand extends LocalCommand{
 	}
 
 	public void execute() {
-		System.out.println("Execute LocalPrimary Replica" + data.key + "  " + data.value);
+		System.out.println("Execute Local PrimaryReplica " + data.key.key + "  " + data.value);
 		KVData data1 = new KVData(data), data2 = new KVData(data);
 		data.code = StatusCode.SUCCESS;
 		switch(data.command) {
@@ -49,11 +49,11 @@ public abstract class PrimaryReplicaCommand extends LocalCommand{
 		}
 		
 		TableEntry[] sendReplicas = HashUtility.findReplicaforMachine(membTable, selfEntry.hashString);
-		if (sendReplicas != null)
-			System.out.println("Old Replicas:" + sendReplicas[0].id + "and" + sendReplicas[1].id);
+		/*if (sendReplicas != null)
+			System.out.println("Replicas:" + sendReplicas[0].id + "and" + sendReplicas[1].id);
 		else
 			System.out.println("!!!No new replicas!!!");
-
+        */
 		if (sendReplicas == null) {
 			//No replication
 			callback(data);

@@ -47,7 +47,7 @@ public class ReplicaIndirectBulkCommand implements ICommand{
 		Gson gson = new Gson();
 		MarshalledServerData mR = new MarshalledServerData(replicaBulkReply);
 		String tx = gson.toJson(mR);
-		System.out.println("ReplicaIndirectBulk Callback: " + tx);
+		// DEBUG System.out.println("ReplicaIndirectBulk Callback: " + tx);
         byte[] outbuf = tx.getBytes();
 		DatagramPacket sendpacket = new DatagramPacket(outbuf, outbuf.length, address, port);
 		txObj.send(sendpacket);

@@ -47,19 +47,19 @@ public class SwapKVwithinReplicas implements ICommand {
 		}
 		
 		if (SrcDest[0] == null) {
-			System.out.println("No difference in replicas");
+			//System.out.println("No difference in replicas");
 			invalid = true;
 			return;
 		} else {
 		    dataRemove = kvStore.getKVDataForMachine(selfEntry, KVCommands.DELETEKV);
 		    if (dataRemove == null) {
-		    	System.out.println("I dont own keys");
+		    	//System.out.println("I dont own keys");
 		    	invalid = true;
 		    	return;
 		    }
 		    dataAdd = kvStore.getKVDataForMachine(selfEntry, KVCommands.INSERTKV);
 		}
-		System.out.println("SwampKV Data moved" + dataRemove);
+		System.out.println("SwampKV Data moved");
 		System.out.println("From " + SrcDest[0].id + " to " + SrcDest[1].id);
 		replicaSrc = new ReplicaBulkAddOrDelRemote(SrcDest[0], selfEntry, txObj, dataRemove, this);
 		replicaDest = new ReplicaBulkAddOrDelRemote(SrcDest[1], selfEntry, txObj, dataAdd, null);
@@ -82,7 +82,7 @@ public class SwapKVwithinReplicas implements ICommand {
 		if (invalid) { 
 			return;
 		}
-		System.out.println("SwampKV Data Callback");
+		//System.out.println("SwampKV Data Callback");
 		replicaDest.execute();
 	}
 

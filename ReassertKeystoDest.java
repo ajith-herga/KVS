@@ -34,7 +34,7 @@ public class ReassertKeystoDest extends RemoteMoveAndDeleteBulkCommand {
 		Gson gson = new Gson();
 		MarshalledServerData mR = new MarshalledServerData(bulkNreply);
 		String tx = gson.toJson(mR);
-		System.out.println("Reassert keys " + tx);
+		// DEBUG System.out.println("Reassert keys " + tx);
         byte[] outbuf = tx.getBytes();
 		DatagramPacket sendpacket = new DatagramPacket(outbuf, outbuf.length, address, port);
 		txObj.send(sendpacket);
