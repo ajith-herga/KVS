@@ -45,7 +45,7 @@ public class GossipServer {
     	selfInetSock = new InetSocketAddress(udpSocket.getLocalAddress(), udpSocket.getLocalPort());
     	
     	String id = selfInetSock.getHostName() + "___" + 
-    	            	selfInetSock.getPort() + "___" + currentTime;
+    	            	selfInetSock.getPort();
     	selfEntry = new TableEntry(id, 0);
     	membTable = new ConcurrentHashMap<String, TableEntry>();
     	membTable.put(id, selfEntry);
