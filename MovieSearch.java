@@ -3,6 +3,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.HashSet;
 
 
@@ -72,6 +73,16 @@ public class MovieSearch {
 	public static void main(String[] args) {
 		MovieSearch m = new MovieSearch(args[0], args[1]);
 		m.populateStore();
-		m.findMovies(args[2]);
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		String input = "";
+		try {
+			while(!(input = br.readLine().trim()).equalsIgnoreCase("quit")){
+				m.findMovies(input);
+			}
+			br.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
