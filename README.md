@@ -24,6 +24,7 @@ If this is not the first node, run "kvs machine_id" using machine_id for some ma
     - modify key value level(updates the value for a key if the key exists)
     - delete key level(deletes the key value pair for the key if it exists)
     - lookup key level(returns the value for the key if it exists)
+
 The "level" at the end of each command can be 1(ONE),2(QUORUM) OR 3(ALL).
 
 5. To make a machine leave the system voluntarily, use CTRL+C
