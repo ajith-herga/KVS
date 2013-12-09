@@ -19,11 +19,12 @@ You will see a machine_id in the format (hostname___port___timestamp) in the fir
 If this is not the first node, run "kvs machine_id" using machine_id for some machine that has already joined.
 
 4. To run the client run "kvc hostname port" - This will run the client program which will wait for your input. Supported commands are
-    - insert key value(inserts key value pair to the appropriate machine)
-    - show(returns all the key value pairs at the client's contact machine)
-    - modify key value(updates the value for a key if the key exists)
-    - delete key(deletes the key value pair for the key if it exists)
-    - lookup key(returns the value for the key if it exists)
+    - insert key value level(inserts key value pair to the appropriate machine)
+    - show level(returns all the key value pairs at the client's contact machine)
+    - modify key value level(updates the value for a key if the key exists)
+    - delete key level(deletes the key value pair for the key if it exists)
+    - lookup key level(returns the value for the key if it exists)
+The "level" at the end of each command can be 1(ONE),2(QUORUM) OR 3(ALL).
 
 5. To make a machine leave the system voluntarily, use CTRL+C
 
