@@ -5,10 +5,10 @@ import org.apache.commons.codec.binary.Hex;
 
 
 public class Key implements Comparable<Key> {
-	long key = 0;
+	String key = null;
 	String keyHash = null;
 	long timestamp = 0;
-	public Key(long key, long timestamp) {
+	public Key(String key, long timestamp) {
 		MessageDigest md;
 		this.key = key;
 		this.timestamp = timestamp;
@@ -35,7 +35,7 @@ public class Key implements Comparable<Key> {
 
 	@Override
 	public boolean equals(Object other){
-		return ((other instanceof Key) && this.key==((Key)other).key); 
+		return ((other instanceof Key) && this.key.equals(((Key)other).key)); 
 	}
 
 }

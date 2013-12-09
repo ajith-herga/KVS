@@ -6,8 +6,9 @@ import java.util.List;
 public class KVTest {
 	KVClientAPI kvC = null;
 	KVClientResponse response = null;
-	List<Long> latencies = null;
+	static volatile List<Long> latencies = null;
 	static long start=8;
+
 	public KVTest(String host, String port) {
 		kvC = new KVClientAPI(host, port);
 		latencies = new ArrayList<Long>(1000000);
@@ -15,10 +16,10 @@ public class KVTest {
 	
 	public void Testcase1() {
 		long time, diff1, key;
-		response = kvC.lookup(0, 1);
+		response = kvC.lookup(0+"", 1);
 		for (key = 0; key < 10000; key++) {
 			time = System.currentTimeMillis();
-			response = kvC.lookup(key, 1);
+			response = kvC.lookup(key+"", 1);
 			diff1 = System.currentTimeMillis() - time;
 			latencies.add(diff1);
 			try {
@@ -36,7 +37,7 @@ public class KVTest {
 		//response = kvC.lookup(0);
 		for (key =0; key < 1000; key++) {
 			time = System.currentTimeMillis();
-			response = kvC.lookup((long)(Math.random()*10000.0),1);
+			response = kvC.lookup((long)(Math.random()*10000.0)+"",1);
 			diff1 = System.currentTimeMillis() - time;
 			latencies.add(diff1);
 			try {
@@ -50,7 +51,7 @@ public class KVTest {
 	}
 
 	public void genHistogram() {
-		System.out.println("Get histogram");
+		//System.out.println("Get histogram");
 		Collections.sort(latencies);
 		latencies = latencies.subList(5, latencies.size() - 5);
 		int numBuck = 12;
@@ -74,26 +75,21 @@ public class KVTest {
 		System.out.println(kvC.showAll().kV.length);
 	}
 	
-	public void Testcase3() {
+	public void Testcase3(int level, int st) {
 		
 		long time, diff1, key;
-		response = kvC.lookup(0, 1);
+		response = kvC.lookup(0+"", level);
 
-		//insert 1000 keys
-		for (key = 0; key < 1000; key++) {
-			response = kvC.insert(key, key+"", 1);
-			try {
-				Thread.sleep(10);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
+		/*
+		 
+		 latencies = new ArrayList<Long>(1000000);
 
-		for (key = 0; key < 500; key++) {
+		for (key = st+0; key < st+250; key++) {
 			time = System.currentTimeMillis();
-			response = kvC.lookup(key*2, 1);
+			response = kvC.lookup(key*2, level);
 			diff1 = System.currentTimeMillis() - time;
+			if(response.Status==false)
+				System.out.println("Failure for key : " + key);
 			latencies.add(diff1);
 			try {
 				Thread.sleep(10);
@@ -103,14 +99,18 @@ public class KVTest {
 			}
 		}
 
+		//System.out.println("Latencies size : "+ latencies.size());
+		/*
+		
 		System.out.println("************************************** || Histogram for read ||**************************************");
+				
 		genHistogram();
 		
 		latencies = new ArrayList<Long>(1000000);
-		
-		for (key = 0; key < 500; key++) {
+		*/
+		for (key = st+0; key < st+250; key++) {
 			time = System.currentTimeMillis();
-			response = kvC.modify(key*2, (key+1000)+"" ,1);
+			response = kvC.modify((key*2)+"", (key+1000)+"" ,level);
 			diff1 = System.currentTimeMillis() - time;
 			latencies.add(diff1);
 			try {
@@ -120,10 +120,17 @@ public class KVTest {
 				e.printStackTrace();
 			}
 		}
+		/*
+		System.out.println("************************************** || Histogram for write(update) ||**************************************");
 
-		//remove all 1000 keys
+		genHistogram();*/
+	}
+	
+	void insertKeys(int level){
+		//insert 1000 keys
+		long key;
 		for (key = 0; key < 1000; key++) {
-			response = kvC.delete(key, 1);
+			response = kvC.insert(key+"", key+"", level);
 			try {
 				Thread.sleep(10);
 			} catch (InterruptedException e) {
@@ -131,15 +138,56 @@ public class KVTest {
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	void removeKeys(int level){
+		//remove all 1000 keys
+		long key;
 
-		System.out.println("************************************** || Histogram for write(update) ||**************************************");
-
-		genHistogram();
+		for (key = 0; key < 1000; key++) {
+			response = kvC.delete(key+"", level);
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}		
 	}
 	
 	public static void main(String[] args) {
 		KVTest kvT = new KVTest("ubuntu", "1124");
-		kvT.Testcase3();		
+		//kvT.insertKeys(1);
+
+		Thread th1 = new Thread(new Runnable() {			
+			@Override
+			public void run() {
+				KVTest kvT = new KVTest("ubuntu", "1124");
+					kvT.Testcase3(3,250);		
+				
+			}
+		});
+		th1.start();
+		Thread th2 = new Thread(new Runnable() {			
+			@Override
+			public void run() {
+				KVTest kvT = new KVTest("ubuntu", "1125");
+					kvT.Testcase3(3,0);		
+				
+			}
+		});
+		th2.start();
+		try {
+			th1.join();
+			th2.join();
+			while(latencies.size()!=500){
+				Thread.sleep(1000L);
+			}
+			kvT.genHistogram();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		/*for(;start<10;start++) {
 			kvT.Testcase1();
 			//kvT.Testcase2();

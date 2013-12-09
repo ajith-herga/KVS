@@ -123,14 +123,14 @@ public class KVClientAPI {
 	}
 
 	public KVClientShowResponse showAll() {
-		KVData data = new KVData(KVCommands.SHOWALL, null, null, System.currentTimeMillis(),StatusCode.FAILURE, 1);
+		KVData data = new KVData(KVCommands.SHOWALL, "", null, System.currentTimeMillis(),StatusCode.FAILURE, 1);
 		requester = new Requester(data);
 		requester.start();
 		joinThreads();
 		return showResult;
 	}
 
-	public KVClientResponse insert(long key, Object Value, int level) {
+	public KVClientResponse insert(String key, Object Value, int level) {
 	    KVData data = new KVData(KVCommands.INSERTKV, key, Value, System.currentTimeMillis(),StatusCode.FAILURE, level);
 	    requester = new Requester(data);
 		requester.start();
@@ -138,7 +138,7 @@ public class KVClientAPI {
 		return result;
 	}
 	
-	public KVClientResponse modify(long key, Object Value, int level) {
+	public KVClientResponse modify(String key, Object Value, int level) {
 	    KVData data = new KVData(KVCommands.MODIFYKV, key, Value, System.currentTimeMillis(),StatusCode.FAILURE, level);
 	    requester = new Requester(data);
 		requester.start();
@@ -146,7 +146,7 @@ public class KVClientAPI {
 		return result;
 	}
 
-	public KVClientResponse lookup(long key, int level) {
+	public KVClientResponse lookup(String key, int level) {
 	    KVData data = new KVData(KVCommands.LOOKUPKV, key, null, System.currentTimeMillis(),StatusCode.FAILURE, level);
 	    requester = new Requester(data);
 		requester.start();
@@ -154,7 +154,7 @@ public class KVClientAPI {
 		return result;
 	}
 
-	public KVClientResponse delete(long key, int level) {
+	public KVClientResponse delete(String key, int level) {
 	    KVData data = new KVData(KVCommands.DELETEKV, key, null, System.currentTimeMillis(),StatusCode.FAILURE, level);
 	    requester = new Requester(data);
 		requester.start();

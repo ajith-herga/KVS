@@ -1,8 +1,8 @@
 
 public class KeyAndValue {
-	long key = 0;
+	String key = null;
 	Object Value = null;
-	public KeyAndValue(long key, Object Value) {
+	public KeyAndValue(String key, Object Value) {
 		this.key = key;
 		this.Value = Value;
 	}

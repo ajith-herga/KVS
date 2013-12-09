@@ -40,7 +40,7 @@ public class KVClient {
 					if(commandAndKV[0].equalsIgnoreCase("insert") || commandAndKV[0].equalsIgnoreCase("modify")){
 						
 						String[] kV = commandAndKV[1].split(" ", 2);
-						long key = 0;
+						String key = "";
 						int level = 1;
 						if(kV.length!=2){
 							System.out.println("Invalid input. Enter again or quit");
@@ -49,10 +49,10 @@ public class KVClient {
 							String[] kVL = kV[0].split(":", 2);
 							try{
 								if (kVL.length == 2) {
-									key = Long.parseLong(kVL[0]);
+									key = kVL[0];
 									level = Integer.parseInt(kVL[1]);
 								} else {
-									key = Long.parseLong(kV[0]);
+									key = kV[0];
 								}
 							} catch(Exception e) {
 								System.out.println("Invalid key. Enter again or quit");
@@ -75,15 +75,15 @@ public class KVClient {
 							}
 						}
 					} else if(commandAndKV[0].equalsIgnoreCase("lookup") || commandAndKV[0].equalsIgnoreCase("delete")){
-						long key = 0;
+						String key = "";
 						int level = 1;
 						String[] kVL = commandAndKV[1].split(":", 2);
 						try{
 							if (kVL.length == 2) {
-								key = Long.parseLong(kVL[0]);
+								key = kVL[0];
 								level = Integer.parseInt(kVL[1]);
 							} else {
-								key = Long.parseLong(commandAndKV[1]);
+								key = commandAndKV[1];
 							}
 						} catch(Exception e) {
 							System.out.println("Invalid key. Enter again or quit");

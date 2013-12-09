@@ -17,7 +17,7 @@ public class KVData {
         this.code = code;
 	}
 
-	public KVData(KVCommands command, long key, Object value, long id, StatusCode code, int level) {
+	public KVData(KVCommands command, String key, Object value, long id, StatusCode code, int level) {
  		this(command, new Key(key, id), value, id, code, level);
 	}
 
