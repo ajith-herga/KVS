@@ -40,6 +40,7 @@ CLASSES = KeyAndValue.java\
         KVServer.java\
         KVClientAPI.java\
         KVClient.java\
+	MovieSearch.java\
         GossipServer.java
 
 default: classes
